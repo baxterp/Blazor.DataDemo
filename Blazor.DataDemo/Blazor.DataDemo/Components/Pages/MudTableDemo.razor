@@ -1,0 +1,71 @@
+@page "/mudtable"
+
+@using MudBlazor
+@using static MudBlazor.CategoryTypes
+@inject HttpClient Http
+
+<PageTitle>MudBlazor Table</PageTitle>
+
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h5">MudBlazor Product Table</MudText>
+    <MudTable Items="@products" Hover="true" Bordered="true" Striped="false" RowClass="cursor-pointer" @ref="table">
+        <HeaderContent>
+            <MudTh Class="invisible">Id</MudTh>
+            <MudTh>Product Name</MudTh>
+            <MudTh>Unit Price</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Class="invisible" DataLabel="Id">@context.productID</MudTd>
+            <MudTd DataLabel="Name">@context.productName</MudTd>
+            <MudTd DataLabel="Description" >@context.unitPrice.ToString("C2")</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100, int.MaxValue }"
+                           RowsPerPageString="@rowsPerPageString"
+                           InfoFormat="true"
+                           AllItemsText="@allItemsText"
+                           HorizontalAlignment="HorizontalAlignment.Right"/>
+        </PagerContent>
+    </MudTable>
+
+    @if (loading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    @if (error != null)
+    {
+        <MudAlert Severity="Severity.Error">@error</MudAlert>
+    }
+</MudPaper>
+
+@code {
+    public class Product
+    {
+        public int productID { get; set; }
+        public string productName { get; set; } = string.Empty;
+        public decimal unitPrice { get; set; }
+    }
+
+    private MudTable<Product> table = new();
+
+    private List<Product> products = new();
+    private bool loading = true;
+    private string? error;
+
+    private string rowsPerPageString = "Rows per page:";
+    private string infoFormat = "{first_item}-{last_item} of {all_items}";
+    private string allItemsText = "All";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            products = await Http.GetFromJsonAsync<List<Product>>("https://api.baxterpearson.co.uk/api/products") ?? new();
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load products: {ex.Message}";
+        }
+        loading = false;
+    }
+}
