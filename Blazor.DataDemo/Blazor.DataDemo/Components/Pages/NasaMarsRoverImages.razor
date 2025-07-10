@@ -1,0 +1,65 @@
+﻿@page "/nasa-mars-rover-images"
+
+@using Blazor.DataDemo.Models
+@using MudBlazor
+@inject HttpClient Http
+
+<h3>Nasa Mars Rover Images</h3>
+<p>Select a date</p>
+<MudDatePicker Label="Date Format" @bind-Date="_date" DateFormat="yyyy-MM-dd" TextChanged="DateChanged" />
+<br />
+<br />
+<br />
+@if (_images == null || _images.Count == 0)
+{
+    <h3>No images found for the selected date.</h3>
+}
+else
+{
+    <h3>Mars rover images for date: @_date?.ToString("dd-MM-yyyy") </h3>
+    <MudGrid>
+        @foreach (var image in _images)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard>
+                    <MudCardMedia Image="@image" Class="rounded-lg" />
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private DateTime? _date = new DateTime(2025, 6, 2);
+    private List<string> _images = new List<string>();
+
+    async Task DateChanged(string value)
+    {
+        _images.Clear();
+        if (DateTime.TryParse(value, out var parsedDate))
+        {
+            _date = parsedDate;
+        }
+        else
+        {
+            _date = null; // Reset if parsing fails
+        }
+
+        string URL = "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?earth_date="
+                        + _date?.ToString("yyyy-MM-dd") + "&api_key=gdNk1u0FchNuvRoqkT0bG5NZxU66YwMvLGOFwr8z";
+
+        var response = await Http.GetAsync(URL);
+        var data = await response.Content.ReadFromJsonAsync(typeof(NasaMarsRoverImagesResponse)) as NasaMarsRoverImagesResponse;
+
+        if (data == null || data.Photos == null)
+        {
+            return; // Handle the case where no data is returned
+        }
+
+        foreach (var imageUrl in data.Photos)
+        {
+            _images.Add(imageUrl.ImgSrc);
+        }
+    }
+
+}
