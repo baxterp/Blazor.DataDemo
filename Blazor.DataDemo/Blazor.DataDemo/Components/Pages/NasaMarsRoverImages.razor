@@ -23,15 +23,39 @@ else
             <MudItem xs="12" sm="6" md="4">
                 <MudCard>
                     <MudCardMedia Image="@image" Class="rounded-lg" />
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => ShowImage(image)" Target="_blank">
+                            View Image
+                        </MudButton>
+                    </MudCardActions>
                 </MudCard>
             </MudItem>
         }
     </MudGrid>
-}
+
+    <MudPaper Class="pa-8" Style="height: 300px; position: relative;">
+        <MudOverlay Visible="_visible" OnClick="CloseImage">
+            <img src="@_selectedImageUrl" class="img-fluid" style="width: auto; height: 100%;" />
+        </MudOverlay>
+    </MudPaper>
+}   
 
 @code {
     private DateTime? _date = new DateTime(2025, 6, 2);
     private List<string> _images = new List<string>();
+    private bool _visible = false;
+    private string _selectedImageUrl = string.Empty;
+
+    private void ShowImage(string imageUrl)
+    {
+        _selectedImageUrl = imageUrl;
+        _visible = true;
+    }
+
+    private void CloseImage()
+    {
+        _visible = false;
+    }
 
     async Task DateChanged(string value)
     {
